@@ -1,29 +1,51 @@
-import pytest
+import pytest_asyncio
 from app.database import get_session
-from fastapi.testclient import TestClient
+from app.models import Puzzle
+from httpx import AsyncClient
 from main import app
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel
 
 
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+@pytest_asyncio.fixture(scope="function", name="session")
+async def async_session():
+    engine = create_async_engine(
+        "sqlite+aiosqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
+
+    session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    async with session() as s:
+        async with engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
+
+        yield s
+
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def simple_puzzle(session: AsyncSession):
+    puzzle = Puzzle(id=1, answer="1", image_urls="1,2,3")
+    session.add(puzzle)
+    await session.commit()
+    await session.refresh(puzzle)
+    return puzzle
+
+
+@pytest_asyncio.fixture(name="client")
+async def client_fixture(session: Session):
+    async def get_session_override():
         yield session
 
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    def get_session_override():
-        return session
-
     app.dependency_overrides[get_session] = get_session_override
-
-    client = TestClient(app)
+    client = AsyncClient(app=app, base_url="http://localhost:8000")
     yield client
     app.dependency_overrides.clear()
