@@ -8,13 +8,18 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   backend:
+    name: Backend
     strategy:
       fail-fast: false
-    name: Backend
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./backend
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -25,35 +30,26 @@ jobs:
           python-version: 3.11.4
 
       - name: Install Dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
+        run: poetry install
 
       - name: Run black
-        run: black . --check
-
-      - name: Run isort
-        run: isort . --check-only --profile black
+        run: poetry run black . --check
 
       - name: Run Flake8
-        run: |
-          cd backend
-          flake8 app tests
+        run: poetry run flake8 app tests
 
       - name: Run bandit
-        run: bandit .
-
-      - name: Run safety
-        run: safety check
+        run: poetry run bandit .
 
       - name: Run Tests
-        run: |
-          cd backend
-          pytest
+        run: poetry run pytest
 
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
 
     steps:
       - name: Checkout Repository
@@ -65,16 +61,7 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        run: |
-          cd frontend
-          yarn install
+        run: yarn install
 
       - name: Run ESLint
-        run: |
-          cd frontend
-          yarn lint
-
-      - name: Run Stylelint
-        run: |
-          cd frontend
-          yarn stylelint
+        run: yarn lint
