@@ -28,7 +28,9 @@
         "Vue.volar",
         "esbenp.prettier-vscode",
         "ms-python.black-formatter",
-        "ms-python.isort"
+        // "ms-python.isort",
+        "github.vscode-github-actions",
+        "GitHub.vscode-pull-request-github"
       ]
     }
   }
