@@ -1,6 +1,5 @@
 import pytest_asyncio
 from app.database import get_session
-from app.models import Puzzle
 from httpx import AsyncClient
 from main import app
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -29,15 +28,6 @@ async def async_session():
         await conn.run_sync(SQLModel.metadata.drop_all)
 
     await engine.dispose()
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def simple_puzzle(session: AsyncSession):
-    puzzle = Puzzle(id=1, answer="1", image_urls="1,2,3")
-    session.add(puzzle)
-    await session.commit()
-    await session.refresh(puzzle)
-    return puzzle
 
 
 @pytest_asyncio.fixture(name="client")

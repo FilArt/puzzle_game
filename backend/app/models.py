@@ -1,8 +1,13 @@
 from sqlmodel import Field, SQLModel
 
 
-class Puzzle(SQLModel, table=True):
+class PuzzleList(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
-    image_urls: str
-    answer: str
 
+
+class PuzzleItem(PuzzleList):
+    image_urls: str
+
+
+class Puzzle(PuzzleItem, table=True):
+    answer: str

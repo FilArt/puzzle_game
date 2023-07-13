@@ -1,6 +1,6 @@
 // Composables
-import { createRouter, createWebHistory } from "vue-router";
 import { useAppStore } from "@/store/app";
+import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
   {
@@ -11,13 +11,13 @@ const routes = [
         path: "",
         name: "Home",
         component: () =>
-          import(/* webpackChunkName: "home" */ "@/views/Home.vue"),
+          import(/* webpackChunkName: "home" */ "@/views/HomeScreen.vue"),
       },
       {
         path: "game",
         name: "Game",
         component: () =>
-          import(/* webpackChunkName: "game" */ "@/views/Game.vue"),
+          import(/* webpackChunkName: "game" */ "@/views/GameScreen.vue"),
         beforeEnter: (to, from, next) => {
           const appStore = useAppStore();
           if (!appStore.username || !appStore.username.length) next("/login");

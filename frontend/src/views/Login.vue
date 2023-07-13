@@ -10,7 +10,7 @@ const store = useAppStore();
 const username = ref(store.username);
 
 const submit = () => {
-  store.$patch({ username });
+  store.setUsername(username);
   router.push("/game");
 };
 </script>
